@@ -1,5 +1,5 @@
 import pytest
-from advent2022.day2 import outcome, Choice, parse_line, score_game
+from advent2022.day2 import outcome, Choice, parse_line, score_game, Result
 
 
 @pytest.mark.parametrize(
@@ -23,9 +23,9 @@ def test_win(p1, p2, res):
 @pytest.mark.parametrize(
     "line,choices",
     [
-        ["A Y", (Choice.Rock, Choice.Paper)],
-        ["B X", (Choice.Paper, Choice.Rock)],
-        ["C Z", (Choice.Scissors, Choice.Scissors)],
+        ["A Y", (Choice.Rock, Result.Draw)],
+        ["B X", (Choice.Paper, Result.Lose)],
+        ["C Z", (Choice.Scissors, Result.Win)],
     ],
 )
 def test_parse(line, choices):

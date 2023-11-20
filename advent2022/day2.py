@@ -17,6 +17,24 @@ class Result(Enum):
     Draw = 1
 
 
+decode = {
+    Choice.Rock: {
+        Result.Win: Choice.Paper,
+        Result.Draw: Choice.Rock,
+        Result.Lose: Choice.Scissors,
+    },
+    Choice.Paper: {
+        Result.Win: Choice.Scissors,
+        Result.Draw: Choice.Paper,
+        Result.Lose: Choice.Rock,
+    },
+    Choice.Scissors: {
+        Result.Win: Choice.Rock,
+        Result.Draw: Choice.Scissors,
+        Result.Lose: Choice.Paper,
+    },
+}
+
 match_table = {
     Choice.Rock: {Choice.Rock: 3, Choice.Paper: 0, Choice.Scissors: 6},
     Choice.Paper: {Choice.Rock: 6, Choice.Paper: 3, Choice.Scissors: 0},
@@ -27,9 +45,9 @@ key = {
     "A": Choice.Rock,
     "B": Choice.Paper,
     "C": Choice.Scissors,
-    "Y": Choice.Paper,
-    "X": Choice.Rock,
-    "Z": Choice.Scissors,
+    "Y": Result.Draw,
+    "X": Result.Lose,
+    "Z": Result.Win,
 }
 
 
@@ -46,7 +64,7 @@ def score_game(choices: tuple[Choice, Choice]):
     return outcome(*choices) + choices[0].value
 
 
-def parse_line(line: str) -> tuple[Choice, Choice]:
+def parse_line(line: str) -> tuple[Choice, Result]:
     a, b = line.split()
     return key[a], key[b]
 
@@ -54,7 +72,9 @@ def parse_line(line: str) -> tuple[Choice, Choice]:
 def file_gen(file_name):
     with open(file_name) as inf:
         for line in inf:
-            yield parse_line(line.strip())
+            opp, res = parse_line(line.strip())
+            me = decode[opp][res]
+            yield opp, me
 
 
 if __name__ == "__main__":
