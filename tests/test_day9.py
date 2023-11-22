@@ -1,4 +1,4 @@
-from advent2022.day9 import Rope, Dir
+from advent2022.day9 import Rope, Dir, to_dir
 import pytest
 
 
@@ -20,6 +20,8 @@ def test_move_head():
     r.move(Dir.down_right)
     r.move(Dir.down_right)
     assert r.current_loc[0] == (3, -1)
+    r.move(Dir.down_left)
+    assert r.current_loc[0] == (2, -2)
 
 
 @pytest.mark.parametrize(
@@ -57,3 +59,21 @@ def test_count():
         r.go(way, count)
     print(sorted(r.tail_locs))
     assert len(r.tail_locs) == 13
+
+
+@pytest.mark.parametrize(
+    "diff,direct",
+    [
+        [[0, 0], Dir.no],
+        [[0, 1], Dir.up],
+        [[0, -1], Dir.down],
+        [[-1, 0], Dir.left],
+        [[1, 0], Dir.right],
+        [[1, -1], Dir.down_right],
+        [[1, 1], Dir.up_right],
+        [[-1, -1], Dir.down_left],
+        [[-1, 1], Dir.up_left],
+    ],
+)
+def test_to_dir(diff, direct):
+    assert to_dir(diff[0], diff[1]) == direct
