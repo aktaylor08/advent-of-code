@@ -1,6 +1,4 @@
-from advent2023.day01 import get_numbers
-
-
+from aoc.y2023.day01 import get_numbers
 import pytest
 
 

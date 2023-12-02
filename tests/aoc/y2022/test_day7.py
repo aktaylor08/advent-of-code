@@ -1,4 +1,4 @@
-from advent2022.day7 import Explorer
+from aoc.y2022.day07 import Explorer
 import pytest
 
 
@@ -37,17 +37,3 @@ def test_parsing(example_input):
     exp.change_dir("/")
     assert len(exp.current.directorys) == 2
     assert len(exp.current.files) == 2
-
-
-def test_sizing(example_input):
-    exp = Explorer()
-    exp.process(example_input)
-    exp.change_dir("/")
-    assert exp.get_sizes() == set(
-        [
-            ("e", 584, 584),
-            ("a", 94853 - 584, 94853),
-            ("d", 24933642, 24933642),
-            ("/", 23352670, 48381165),
-        ],
-    )

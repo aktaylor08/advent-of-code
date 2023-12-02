@@ -1,1 +1,3 @@
 *.pyc
+advent2022/__pycache__/
+*/*.pyc

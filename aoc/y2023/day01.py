@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from advent_of_code import get_input
+from aoc import get_input
 
 DIGITS = [
     "one",

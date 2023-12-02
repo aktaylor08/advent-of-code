@@ -1,5 +1,5 @@
 import pytest
-from advent2022.day5 import Crane
+from aoc.y2022.day05 import Crane
 
 
 def test_parse():

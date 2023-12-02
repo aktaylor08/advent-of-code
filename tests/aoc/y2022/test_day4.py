@@ -1,5 +1,5 @@
 import pytest
-from advent2022.day4 import get_ranges, contains
+from aoc.y2022.day04 import get_ranges, contains
 
 
 @pytest.mark.parametrize(

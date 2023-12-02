@@ -1,4 +1,4 @@
-from advent2022.day9 import Rope, Dir, to_dir
+from aoc.y2022.day09 import Rope, Dir, to_dir
 import pytest
 
 

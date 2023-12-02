@@ -1,4 +1,4 @@
-from advent2022.day6 import find_first
+from aoc.y2022.day06 import find_first
 
 import pytest
 

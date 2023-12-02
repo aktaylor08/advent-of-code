@@ -1,5 +1,5 @@
 import pytest
-from advent2022.day3 import split_line, find_common, find_priority
+from aoc.y2022.day03 import split_line, find_common, find_priority
 
 
 @pytest.mark.parametrize(

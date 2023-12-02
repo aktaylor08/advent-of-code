@@ -1,5 +1,5 @@
 import pytest
-from advent2022.day2 import outcome, Choice, parse_line, score_game, Result
+from aoc.y2022.day02 import outcome, Choice, parse_line, score_game, Result
 
 
 @pytest.mark.parametrize(
