@@ -1,4 +1,3 @@
-from pyrsistent import get_in
 from aoc import get_input
 
 
