@@ -54,42 +54,22 @@ def get_adjacent_numbers(row, col, numbers):
 def work():
     symbols = []
     numbers = {}
-    for row, line in enumerate(
-        [
-            "467..114..",
-            "...*......",
-            "..35..633.",
-            "......#...",
-            "617*......",
-            ".....+.58.",
-            "..592.....",
-            "......755.",
-            "...$.*....",
-            ".664.598..",
-        ]
-    ):
-        # for row, line in enumerate(get_input(2023,3).split('\n')):
+    for row, line in enumerate(get_input(2023, 3).split("\n")):
         sym, num = parse_line(row, line)
         symbols += sym
         numbers = {**numbers, **num}
     sum_1 = 0
-    for x, y, _ in symbols:
-        for dx, dy in [
-            (1, 0),
-            (1, 1),
-            (1, -1),
-            (0, 1),
-            (0, -1),
-            (-1, 0),
-            (-1, 1),
-            (-1, -1),
-        ]:
-            nx = x + dx
-            ny = y + dy
-            if (nx, ny) in numbers and not numbers[(nx, ny)].used:
-                sum_1 += numbers[(nx, ny)].value
-                numbers[(nx, ny)].used = True
+    sum_2 = 0
+    for x, y, ch in symbols:
+        adj = get_adjacent_numbers(x, y, numbers)
+        for num in adj:
+            if not num.used:
+                sum_1 += num.value
+                num.used = True
+        if ch == "*" and len(adj) == 2:
+            sum_2 += adj[0].value * adj[1].value
     print(sum_1)
+    print(sum_2)
 
 
 if __name__ == "__main__":
