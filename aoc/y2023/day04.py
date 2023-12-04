@@ -1,6 +1,6 @@
 import math
 
-from aoc import get_input, sample_input
+from aoc import get_input
 
 
 def parse_line(line: str) -> tuple[int, set[int], set[int]]:
