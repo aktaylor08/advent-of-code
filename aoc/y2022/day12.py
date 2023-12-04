@@ -1,5 +1,6 @@
 import math
-import heapq
+
+from aoc import get_input
 
 
 class MapSquare:
@@ -15,7 +16,7 @@ class ElfMap:
         self.map: dict[tuple[int, int], MapSquare] = {}
         self.start = None
         self.target = None
-        self.heap = []
+        self.queue = []
 
     def parse(self, input):
         for row, line in enumerate(input.split("\n")):
@@ -24,54 +25,52 @@ class ElfMap:
                 if height == "S":
                     self.start = (row, column)
                     square.distance = 0
-                    square.height = ")"
-                    self.heap = [(0, (row, column))]
+                    square.finished = True
+                    self.queue.append((row, column))
                 if height == "E":
                     self.target = (row, column)
-                    square.height = ")"
                 self.map[(row, column)] = square
 
+    def can_travel(self, square1: MapSquare, square2: MapSquare):
+        ret = False
+        if square1.height == "S":
+            if square2.height == "a":
+                ret = True
+        elif square2.height == "E":
+            if square1.height == "z":
+                ret = True
+        else:
+            if ord(square2.height) - ord(square1.height) < 2:
+                ret = True
+        return ret
+
     def work(self):
-        while self.heap:
-            d, (row, col) = heapq.heappop(self.heap)
-            key = (row, col)
+        while self.queue:
+            key = self.queue[0]
+            row, col = key
+            self.queue = self.queue[1:]
             cur_square = self.map[key]
-            if cur_square.finished:
-                continue
-            cur_square.finished = True
+            if key == self.target:
+                return
             for dr, dc in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                 n_key = (row + dr, col + dc)
                 if n_key in self.map:
                     neighbor = self.map[n_key]
                     # Can I get there
-                    if (
-                        ord(neighbor.height) - ord(cur_square.height) < 2
-                        or key == self.start
-                        or (n_key == self.target and cur_square.height == "z")
-                    ):
-                        new_d = d + 1
-                        if new_d < neighbor.distance:
-                            print(
-                                cur_square.height,
-                                neighbor.height,
-                                ord(neighbor.height) - ord(cur_square.height),
-                            )
+                    if not neighbor.finished:
+                        if self.can_travel(cur_square, neighbor):
+                            neighbor.finished = True
                             neighbor.parent = key
-                            neighbor.distance = new_d
-                            heapq.heappush(self.heap, (new_d, n_key))
+                            neighbor.distance = cur_square.distance + 1
+                            self.queue.append(n_key)
 
 
 def main():
     m = ElfMap()
-    amap = """Sabqponm\nabcryxxl\naccszExk\nacctuvwj\nabdefghi\n"""
+    amap = get_input(2022, 12)
     m.parse(amap)
     m.work()
     print(m.map[m.target].distance)
-    print(m.map[m.target].parent)
-    current = m.target
-    while current != m.start:
-        print(current)
-        current = m.map[current].parent
 
 
 if __name__ == "__main__":
