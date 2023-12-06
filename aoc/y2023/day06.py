@@ -1,4 +1,5 @@
 import numpy as np
+from aoc import get_input
 
 
 def go(time, record):
@@ -6,7 +7,16 @@ def go(time, record):
     return ((time - tarr) * tarr > record).sum()
 
 
-a = go(44, 283) * go(70, 1134) * go(70, 1134) * go(80, 1491)
-b = go(44707080, 283113411341491)
-print(a)
-print(b)
+times, distance = get_input(2023, 6).strip().split("\n")
+tlong = ""
+dlong = ""
+part1 = 1
+for t, d in zip(
+    (int(x) for x in times.split(":")[1].strip().split()),
+    (int(x) for x in distance.split(":")[1].strip().split()),
+):
+    part1 *= go(t, d)
+    tlong += str(t)
+    dlong += str(d)
+print(part1)
+print(go(int(tlong), int(dlong)))
