@@ -1,4 +1,6 @@
+import enum
 import heapq
+import time
 from enum import Enum
 from collections import Counter
 
@@ -114,9 +116,11 @@ class Hand:
 
 
 def do_work():
+    data = get_input(2023, 7)
     hand_heap = []
     hand_wild_heap = []
-    for line in get_input(2023, 7).strip().split("\n"):
+    t1 = time.time()
+    for line in data.strip().split("\n"):
         a_hand = Hand(*line.strip().split(), wild_allowed=False)
         wild_hand = Hand(*line.strip().split(), wild_allowed=True)
         heapq.heappush(hand_heap, a_hand)
@@ -130,8 +134,27 @@ def do_work():
         sum1 += rank * value.wager
         sum2 += rank * value_wild.wager
         rank += 1
+    t2 = time.time()
     print(sum1)
     print(sum2)
+    t3 = time.time()
+    raw = []
+    raw_2 = []
+    for line in data.strip().split("\n"):
+        raw.append(Hand(*line.strip().split(), wild_allowed=False))
+        raw_2.append(Hand(*line.strip().split(), wild_allowed=True))
+    raw.sort()
+    raw_2.sort()
+    sum1 = 0
+    sum2 = 0
+    for idx, (a, b) in enumerate(zip(raw, raw_2)):
+        sum1 += (idx + 1) * a.wager
+        sum2 += (idx + 1) * b.wager
+    t4 = time.time()
+    print(sum1)
+    print(sum2)
+    print(t4 - t3)
+    print(t2 - t1)
 
 
 if __name__ == "__main__":
