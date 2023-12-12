@@ -2,54 +2,6 @@ from aoc import get_input
 from functools import cache
 
 
-class Grouping:
-    def __init__(self, mark: str, size: int, start: int):
-        self.mark = mark
-        self.size = size
-        self.start = start
-        self.left = None
-        self.right = None
-
-    def __repr__(self):
-        return f"{self.mark} {self.start}-{self.start + self.size} -> {self.size}"
-
-
-def get_groups(group_str: str):
-    last = None
-    start_idx = 0
-    groups = []
-    for idx, c in enumerate(group_str):
-        if last != c or idx == len(group_str) - 1:
-            if last is not None:
-                g = Grouping(last, idx - start_idx, start_idx)
-                groups.append(g)
-            start_idx = idx
-        last = c
-
-    return groups
-
-
-def possible_fits(count, line_str):
-    if count > len(line_str):
-        return None
-    if line_str[0] == ".":
-        return None
-    sub_str = line_str[:count]
-    if "." in sub_str:
-        return None
-    if count < len(line_str):
-        if line_str[count] == ".":
-            return line_str[count:]
-        elif line_str[count] == "?":
-            return "." + line_str[count + 1 :]
-        else:
-            return None
-    else:
-        return ""
-
-    # If there is leftover and it is a ? we have to flip it to '.' if it is a # it isn't possible
-
-
 @cache
 def do_line(springs, counts, pos=0, current=0) -> int:
     if pos == len(springs):
