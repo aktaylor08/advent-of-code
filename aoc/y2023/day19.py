@@ -1,11 +1,32 @@
 from aoc import get_input
 import re
+import math
 
 
 class Workflow:
     def __init__(self, name, rules):
         self.name = name
         self.rules = rules
+
+    def get_dests(self, minv, maxv):
+        chain = []
+        to_ret = {}
+        for arule in self.rules:
+            if ":" not in arule:
+                to_ret[arule] = chain
+            else:
+                check, dest = arule.split(":")
+                if "<" in check:
+                    left, right = check.split("<")
+                    happy = chain[:] + [(left, minv, int(right))]
+                    to_ret[dest] = happy
+                    chain.append((left, int(right), maxv + 1))
+                elif ">" in check:
+                    left, right = check.split(">")
+                    happy = chain[:] + [(left, int(right) + 1, maxv + 1)]
+                    to_ret[dest] = happy
+                    chain.append((left, minv, int(right) + 1))
+        return to_ret
 
     def process(self, part):
         for rule in self.rules:
@@ -25,32 +46,6 @@ class Workflow:
                 else:
                     raise Exception("NO check in rule?")
         return None
-
-    def by_set(self, input_sets):
-        result_sets = {}
-        for rule in self.rules:
-            if ":" not in rule:
-                res_dict = {x: set(v) for x, v in input_sets.items()}
-                result_sets[rule] = res_dict
-            else:
-                check, dest = rule.split(":")
-                if "<" in rule:
-                    left, right = check.split("<")
-                    res_dict = {x: set(v) for x, v in input_sets.items()}
-                    the_split = set(filter(lambda x: x < int(right), input_sets[left]))
-                    res_dict[left] = the_split
-                    input_sets[left] = input_sets[left] - the_split
-                    result_sets[dest] = res_dict
-                elif ">" in rule:
-                    left, right = check.split(">")
-                    res_dict = {x: set(v) for x, v in input_sets.items()}
-                    the_split = set(filter(lambda x: x > int(right), input_sets[left]))
-                    res_dict[left] = the_split
-                    input_sets[left] = input_sets[left] - the_split
-                    result_sets[dest] = res_dict
-                else:
-                    raise Exception("NO check in rule?")
-        return result_sets
 
 
 def parse_rule(aline: str) -> Workflow:
@@ -93,43 +88,42 @@ def process(workflows: dict[str, Workflow], inparts: list[dict[str, int]]):
     return sum1
 
 
-def part_2(workflows):
-    start = 1
-    end = 4001
-    inputs = [
-        (
-            "in",
-            {
-                "x": set([x for x in range(start, end)]),
-                "m": set([x for x in range(start, end)]),
-                "a": set([x for x in range(start, end)]),
-                "s": set([x for x in range(start, end)]),
-            },
-        )
-    ]
-    input_vals = {a[0] for a in inputs}
-    while input_vals != set(["R", "A"]):
-        next_inputs = []
-        for w, to_compute in inputs:
-            if w not in ["A", "R"]:
-                worker = workflows[w]
-                res = worker.by_set(to_compute)
+def calc2(conditions, input_set, minv, maxv):
+    the_sum = 0
+    ranges = {x: set() for x in input_set}
+    for a_ending in conditions:
+        pos = {k: list(range(minv, maxv + 1)) for k in input_set}
+        for key, min_r, max_r in a_ending:
+            if key is None:
+                continue
             else:
-                res = {w: to_compute}
-            for dest in res:
-                next_inputs.append((dest, res[dest]))
-        inputs = next_inputs
-        input_vals = {a[0] for a in inputs}
-    print("-------")
-    result = 1
-    for x in inputs:
-        if x[0] == "A":
-            print(x[1])
-            temp = 1
-            for v in "xmas":
-                temp *= len(x[1][v])
-            result += temp
-    print(result)
+                pos[key] = list(
+                    filter(lambda x: int(min_r) <= x < int(max_r), pos[key])
+                )
+        for x in pos:
+            ranges[x] = ranges[x] | set(pos[x])
+            print(len(ranges[x]))
+    print(the_sum)
+
+
+def part_2(workflows, input_set="xy", minv=1, maxv=10):
+    queue = [("in", [])]
+    visited = set()
+    conditions = []
+    while len(queue) > 0:
+        cur, tests = queue[0]
+        queue = queue[1:]
+        if cur not in ["A", "R"]:
+            worker = workflows[cur]
+            for dest, funcs in worker.get_dests(minv, maxv).items():
+                if dest not in visited:
+                    queue.append((dest, tests[:] + funcs))
+            visited.add(cur)
+        elif cur == "A":
+            conditions.append(tests)
+        elif cur != "R":
+            print("WHY")
+    calc2(conditions, input_set, minv, maxv)
 
 
 def main():
@@ -137,8 +131,7 @@ def main():
     workflows, parts = input.split("\n\n")
     workflows = get_work(workflows)
     parts = get_parts(parts)
-    process(workflows, parts)
-    part_2(workflows)
+    part_2(workflows, input_set="xmas", minv=1, maxv=4000)
 
 
 if __name__ == "__main__":
