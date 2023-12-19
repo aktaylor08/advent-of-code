@@ -28,6 +28,34 @@ class Workflow:
                     chain.append((left, minv, int(right) + 1))
         return to_ret
 
+    def split_ranges(self, inputs):
+        outputs = {}
+        still_valid = inputs
+        for arule in self.rules:
+            if ":" not in arule:
+                outputs[arule] = still_valid
+            else:
+                check, dest = arule.split(":")
+                if "<" in check:
+                    left, right = check.split("<")
+                    valid = still_valid[left]
+                    good_range = (valid[0], int(right))
+                    rest_range = (int(right), valid[1])
+                    new_dict = dict(**still_valid)
+                    new_dict[left] = good_range
+                    outputs[dest] = new_dict
+                    still_valid[left] = rest_range
+                elif ">" in check:
+                    left, right = check.split(">")
+                    valid = still_valid[left]
+                    good_range = (int(right) + 1, valid[1])
+                    rest_range = (valid[0], int(right))
+                    new_dict = dict(**still_valid)
+                    new_dict[left] = good_range
+                    outputs[dest] = new_dict
+                    still_valid[left] = rest_range
+        return outputs
+
     def process(self, part):
         for rule in self.rules:
             if ":" not in rule:
@@ -88,42 +116,31 @@ def process(workflows: dict[str, Workflow], inparts: list[dict[str, int]]):
     return sum1
 
 
-def calc2(conditions, input_set, minv, maxv):
-    the_sum = 0
-    ranges = {x: set() for x in input_set}
-    for a_ending in conditions:
-        pos = {k: list(range(minv, maxv + 1)) for k in input_set}
-        for key, min_r, max_r in a_ending:
-            if key is None:
-                continue
-            else:
-                pos[key] = list(
-                    filter(lambda x: int(min_r) <= x < int(max_r), pos[key])
-                )
-        for x in pos:
-            ranges[x] = ranges[x] | set(pos[x])
-            print(len(ranges[x]))
-    print(the_sum)
-
-
-def part_2(workflows, input_set="xy", minv=1, maxv=10):
-    queue = [("in", [])]
-    visited = set()
-    conditions = []
-    while len(queue) > 0:
-        cur, tests = queue[0]
-        queue = queue[1:]
-        if cur not in ["A", "R"]:
-            worker = workflows[cur]
-            for dest, funcs in worker.get_dests(minv, maxv).items():
-                if dest not in visited:
-                    queue.append((dest, tests[:] + funcs))
-            visited.add(cur)
-        elif cur == "A":
-            conditions.append(tests)
-        elif cur != "R":
-            print("WHY")
-    calc2(conditions, input_set, minv, maxv)
+def part_2point2(workflows, input_set="xy", minv=1, maxv=10):
+    input_ranges = {x: (minv, maxv) for x in input_set}
+    input_things = [("in", input_ranges, [], 0)]
+    sum = 0
+    ranges = []
+    while input_things:
+        w, in_data, path, depth = input_things[0]
+        print(depth)
+        input_things = input_things[1:]
+        if w not in ["R", "A"]:
+            worker = workflows[w]
+            for dest, inputs in worker.split_ranges(in_data).items():
+                input_things.append((dest, inputs, path[:] + [w], depth + 1))
+        elif w == "A":
+            temp = 1
+            print(depth, path)
+            for x in in_data:
+                print("\t", x, in_data[x])
+            for k, (minv, maxv) in in_data.items():
+                print(maxv - minv)
+                temp = temp * (maxv - minv + 1)
+            ranges.append(temp)
+            sum += temp
+    print(ranges)
+    print(sum)
 
 
 def main():
@@ -131,7 +148,12 @@ def main():
     workflows, parts = input.split("\n\n")
     workflows = get_work(workflows)
     parts = get_parts(parts)
-    part_2(workflows, input_set="xmas", minv=1, maxv=4000)
+    part_2point2(workflows, input_set="xmas", minv=1, maxv=4000)
+    workflows = {
+        "in": Workflow("in", ["x<5:one", "two"]),
+        "one": Workflow("in", ["y>7:A", "R"]),
+        "two": Workflow("in", ["y<3:A", "R"]),
+    }
 
 
 if __name__ == "__main__":
