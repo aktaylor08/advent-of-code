@@ -119,6 +119,7 @@ def part_2point2(workflows, input_set="xy", minv=1, maxv=10):
     input_things = [("in", input_ranges, [], 0)]
     sum = 0
     sum2 = 0
+    values = []
     while input_things:
         w, in_data, path, depth = input_things.pop()
         if w not in ["R", "A"]:
@@ -126,6 +127,7 @@ def part_2point2(workflows, input_set="xy", minv=1, maxv=10):
             for dest, inputs in worker.split_ranges(in_data).items():
                 input_things.append((dest, inputs, path[:] + [w], depth + 1))
         elif w == "A":
+            values.append(in_data)
             temp = 1
             print("------->")
             for k, (minv, maxv) in in_data.items():
@@ -141,12 +143,8 @@ def part_2point2(workflows, input_set="xy", minv=1, maxv=10):
                 print(k, (maxv - minv + 1))
                 temp = temp * (maxv - minv + 1)
             sum2 += temp
-    print(sum)
-    print(sum2)
-    print(sum + sum2)
-    a = 4000 * 4000 * 4000 * 4000
-    print(a)
-    print(a - sum2)
+    for x in values:
+        print(x)
 
 
 def main():
