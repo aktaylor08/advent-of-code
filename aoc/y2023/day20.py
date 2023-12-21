@@ -9,7 +9,7 @@ class Module(ABC):
     def get_name(self):
         return self.name
 
-    def handle(self, from_mod: str, sig: int) -> list[tuple[str, str, int]]:
+    def handle(self, from_mod: str, sig: int, round: int) -> list[tuple[str, str, int]]:
         raise Exception("Not implemented")
 
 
@@ -18,7 +18,7 @@ class Broadcaster(Module):
         self.dests = dests
         self.name = "broadcaster"
 
-    def handle(self, from_mod: str, sig: int):
+    def handle(self, from_mod: str, sig: int, round: int):
         return [(self.name, x, sig) for x in self.get_dest()]
 
     def get_dest(self) -> list[str]:
@@ -34,7 +34,7 @@ class FlipFlop(Module):
         self.dest = dest
         self.on = False
 
-    def handle(self, from_mod, sig):
+    def handle(self, from_mod: str, sig: int, round: int):
         rev_val = []
         to_send = None
         if sig == 0:
@@ -58,7 +58,7 @@ class Noop(Module):
         self.name = name
         self.count = 0
 
-    def handle(self, from_mod: str, sig: int):
+    def handle(self, from_mod: str, sig: int, round: int):
         if sig == 0:
             self.count += 1
         return []
@@ -69,16 +69,22 @@ class Conjunction(Module):
         self.name = name
         self.dest = dest
         self.inputs = {}
+        self.names = []
+        self.seen_at = {}
 
     def add_input(self, name):
-        print(f"Added input to {self.name} from {name}")
         self.inputs[name] = 0
+        self.names.append(name)
 
-    def handle(self, from_mod: str, sig: int):
+    def handle(self, from_mod: str, sig: int, round: int):
         to_ret = []
         if from_mod not in self.inputs:
             raise Exception("not there")
         self.inputs[from_mod] = sig
+        vals = tuple([self.inputs[x] for x in self.names])
+        if vals not in self.seen_at:
+            print(round, vals)
+            self.seen_at[vals] = round
         for adest in self.dest:
             if all(self.inputs.values()):
                 to_ret.append((self.name, adest, 0))
@@ -96,6 +102,25 @@ def wire(sender: Module, rec: Module):
         rec.add_input(sender.name)
 
 
+def search_flops(the_map, nodes):
+    flops = []
+    path = ["broadcaster"]
+    paths = {}
+    seen = set()
+    queue = [("broadcaster", 0, path)]
+    while queue:
+        node, dist, path = queue[0]
+        paths[node] = path
+        queue = queue[1:]
+        if isinstance(nodes[node], FlipFlop):
+            flops.append(nodes[node])
+        for x in the_map.get(node, []):
+            if x not in seen:
+                queue.append((x, dist + 1, path[:] + [node]))
+        seen.add(node)
+    return flops, paths
+
+
 def main():
     the_map = {}
     modules = {}
@@ -105,7 +130,6 @@ def main():
         name, dest_v = line.split(" -> ")
         if name != "broadcaster":
             name = name.lstrip().rstrip()[1:]
-        print(name)
         dests = [x.lstrip().strip() for x in dest_v.strip().split(",")]
         if line.startswith("broadcaster"):
             thing = Broadcaster(dests)
@@ -118,23 +142,25 @@ def main():
             the_map[name] = dests
         else:
             raise Exception("Bad line")
-        print(name)
         modules[name] = thing
         alldests.update(dests)
-    print(the_map)
-    print(modules)
-    print(alldests)
     for x in alldests:
-        print(x)
         if x not in modules:
             modules[x] = Noop(x)
+            the_map[x] = []
     for key, value in the_map.items():
         for rec in value:
             wire(modules[key], modules[rec])
     lows = 0
     highs = 0
     print("Starting iter\n\n")
-    for i in range(1000):
+    cycle = 0
+    flops, paths = search_flops(the_map, modules)
+    print(paths["rx"])
+    conjuncs = [modules[x] for x in paths["rx"] if isinstance(modules[x], Conjunction)]
+    print(conjuncs)
+    while modules["rx"].count == 0:
+        cycle += 1
         queue = [("button", "broadcaster", 0)]
         while len(queue) > 0:
             from_mod, dest, sig = queue[0]
@@ -143,14 +169,15 @@ def main():
             else:
                 lows += 1
             queue = queue[1:]
-            print(f"{from_mod}--{sig}-->{dest}")
             rec = modules[dest]
-            results = rec.handle(from_mod, sig)
+            results = rec.handle(from_mod, sig, cycle)
             for x in results:
                 queue.append(x)
-    print(lows)
-    print(highs)
-    print(lows * highs)
+        if cycle == 1000:
+            print(lows * highs)
+        if cycle % 1_000_000 == 0:
+            for x in conjuncs:
+                print(x.seen_at)
 
 
 if __name__ == "__main__":
