@@ -121,8 +121,13 @@ def get_diffs(direction, direction_count):
         return dmap[direction]
 
 
+def sample_input():
+    return "11599\n99199\n99199\n99199\n99111\n"
+
+
 def main():
-    amap = parse_input(get_input(2023, 17, 0))
+    amap = parse_input(sample_input())  # parse_input(get_input(2023, 17, 0))
+    # amap = parse_input(get_input(2023, 17, 0))
     search(amap)
 
 
