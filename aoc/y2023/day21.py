@@ -38,7 +38,7 @@ def search(
 
 
 def main():
-    step_count = 50
+    step_count = 100
     amap = get_input(2023, 21, 0).strip().split()
     start = None
     for row, x in enumerate(amap):
