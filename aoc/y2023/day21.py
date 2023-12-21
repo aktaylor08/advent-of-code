@@ -32,13 +32,13 @@ def search(
                     )
             else:
                 oob.add((newr, newc, depth - 1, off_down, off_right))
-    if (row, col, depth) not in history:
-        history[(row, col, depth)] = sum
+    if (row, col, depth, off_down, off_right) not in history:
+        history[(row, col, depth, off_down, off_right)] = sum
     return sum
 
 
 def main():
-    step_count = 100
+    step_count = 50
     amap = get_input(2023, 21, 0).strip().split()
     start = None
     for row, x in enumerate(amap):
