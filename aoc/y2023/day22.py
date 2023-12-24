@@ -42,7 +42,7 @@ class Brick:
         return self.name
 
 
-def break_shit(brick):
+def break_bricks(brick):
     count = 0
     to_remove = [brick]
     removed = set()
@@ -104,7 +104,7 @@ def parse(stuff):
     print(len(will_break))
     removed = 0
     for x in will_break:
-        a = break_shit(x)
+        a = break_bricks(x)
         removed += a
     print(removed)
 
