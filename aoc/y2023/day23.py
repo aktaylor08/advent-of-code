@@ -18,6 +18,10 @@ class Node:
         self.start_col = start_col
         self.steps = []
 
+    def add_child(self, row, col, weight):
+        if self.start_row != row or col != self.start_col:
+            self.children[(row, col)] = weight
+
     def __repr__(self):
         return f"({self.start_row}, {self.start_col}: {self.weight} -> {len(self.children)})"
 
@@ -42,8 +46,9 @@ def traverse(start, amap):
         node.steps.append((row, col))
         if row == len(amap) - 1:
             new_node = Node(row, col)
+            end_node = new_node
             all_nodes[(row, col)] = new_node
-            node.children[(row, col)] = distance
+            node.add_child(row, col, distance)
         for dr, dc, new_direct in [
             (1, 0, Direction.down),
             (-1, 0, Direction.up),
@@ -55,7 +60,8 @@ def traverse(start, amap):
             if 0 <= new_row < len(amap) and 0 <= new_col < len(amap[0]):
                 if (new_row, new_col) in visited:
                     if (new_row, new_col) in all_nodes:
-                        node.children[(new_row, new_col)] = distance
+                        if (new_row, new_col) != (0, start):
+                            node.add_child(new_row, new_col, distance)
                 elif "#" == amap[new_row][new_col]:
                     pass
                 elif amap[new_row][new_col] == ".":
@@ -68,9 +74,9 @@ def traverse(start, amap):
                         count += 1
                         new_node = Node(new_row, new_col)
                         all_nodes[(new_row, new_col)] = new_node
-                        node.children[(new_row, new_col)] = distance
+                        node.add_child(new_row, new_col, distance)
                         to_visit.append((new_node, 1, new_row, new_col, set(visited)))
-    return start_node, all_nodes
+    return start_node, end_node, all_nodes
 
 
 def cango(char: str, direct: Direction):
@@ -83,7 +89,6 @@ def cango(char: str, direct: Direction):
         to_ret = True
     if direct == Direction.down and char == "v":
         to_ret = True
-    print(char, direct, to_ret)
     return to_ret
 
 
@@ -107,25 +112,54 @@ def sort(nodes):
 def build_graph(instuff):
     lines = instuff.split("\n")
     start = lines[0].find(".")
-    start, allthem = traverse(start, lines)
+    start, end, allthem = traverse(start, lines)
     dot = graphviz.Digraph()
+    degree = {}
     for row, col in allthem:
         x = allthem[(row, col)]
         node_name = f"{x.start_row}, {x.start_col}"
         dot.node(node_name, node_name)
         for row, col in x.children:
             dist = x.children[(row, col)]
+            if (row, col) in degree:
+                degree[(row, col)] += 1
+            else:
+                degree[(row, col)] = 1
             dot.edge(
                 node_name,
                 f"{row}, {col}",
                 label=str(dist),
             )
     dot.render()
+    do_work(allthem, start, degree, end)
+
+
+def do_work(allthem, start, degree, end):
+    # Do topo sort
+    queue = [(start.start_row, start.start_col)]
+    sorted_nodes = []
+    while queue:
+        u = queue[0]
+        queue = queue[1:]
+        sorted_nodes.append(u)
+        for vert_key in allthem[u].children:
+            degree[vert_key] -= 1
+            if degree[vert_key] == 0:
+                queue.append(vert_key)
+    dist = {x: -99999999999999 for x in sorted_nodes}
+    dist[(start.start_row, start.start_col)] = 0
+    for idx in range(len(dist)):
+        vert = sorted_nodes[idx]
+        node = allthem[vert]
+        for child in node.children:
+            if dist[child] < dist[vert] + node.children[child]:
+                dist[child] = dist[vert] + node.children[child]
+    print(dist[(end.start_row, end.start_col)] - 1)
 
 
 def main():
     with open("input.txt") as f:
-        build_graph(f.read().strip())
+        build_graph(get_input(2023, 23).strip())
 
 
 if __name__ == "__main__":
